@@ -1,14 +1,15 @@
-##Basics for R
+#Basics for R
 
-##Install Swirl and run it
+#Install Swirl and run it
 
-##install.packages("swirl")
+#install.packages("swirl")
 library(swirl)
-##install_from_swirl("R Programming")
-##install_from_swirl("Getting and Cleaning Data")
+#install_from_swirl("R Programming")
+#install_from_swirl("Getting and Cleaning Data")
+#install_from_swirl("Exploratory Data Analysis")
 
 
-##Import Data
+#Import Data
 variable<-read.csv("/Users/JessicaBohning/Documents/Data Science/example.csv",
          na.strings="Not Available",stringsAsFactors=FALSE)
 
