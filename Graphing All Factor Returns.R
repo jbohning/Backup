@@ -3,10 +3,10 @@
 JPlot<-function(x,y,graphname,space=2){
         
         plot(x, y, xlim=range(x,na.rm=TRUE), 
-             ylim = c(min(y,na.rm=TRUE),(max(y,na.rm=TRUE)+space)),pch=".:", main=graphname,
-             cex.main=.85, cex.sub=0.75, xlab="Dates", ylab="Active Exposure (%)")
+             ylim = c(min(y,na.rm=TRUE),(max(y,na.rm=TRUE)+space)),pch=".:", 
+             main=graphname, cex.main=.85, cex.sub=0.75, xlab="Dates", 
+             ylab="Cumulative Returns (%)",type='l')
         
-        lines(x, y,type="l")
         abline(v=as.Date("12/31/2014",format="%m/%d/%Y"),lty=5,col=132)
         abline(v=as.Date("3/31/2014",format="%m/%d/%Y"),lty=5,col=50)
         legend("topleft",pch=c("-","-"),col=c(50,132),
