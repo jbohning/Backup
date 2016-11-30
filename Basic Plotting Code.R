@@ -119,14 +119,139 @@ example(points)
 
  
 
+#Simple Lattice ScatterPlots
+library(lattice)
+library(datasets)
+xyplot(Ozone~Wind,data=airquality)
+
+#Simple Lattice Plot
+airquality<-transform(airquality,Month=factor(Month))
+xyplot(Ozone~Wind|Month,data = airquality,layout=c(5,1))
+
+#Prevent printing of graph
+p<-xyplot(Ozone~Wind,data=airquality)
+print(p)
+
+#Lattice Panel Functions
+set.seed(10)
+x<-rnorm(100)
+f<-rep(0:1,each=50)
+y<- x+f-f*x+rnorm(100,sd=0.5)
+f<-factor(f,labels = c("Group 1","Group 2"))
+xyplot(y~x|f,layout=c(2,1)) #Plot with 2 panels
+
+#Lattice Panel Functions
+#Custom panel function
+xyplot(y~x|f,panel=function(x,y,...){
+        panel.xyplot(x,y,...) #First call the default panel funtion for 'xplot'
+        panel.abline(h=median(y),lty=2) #Add a horizontal line at the median
+})
+
+#Lattice Panel Functions: Regression Lines
+#Custom panel function
+xyplot(y~x|f,panel=function(x,y,...){
+        panel.xyplot(x,y,...) #First call the default panel funtion for 'xplot'
+        panel.lmline(x,y,col=2) #Overlay a simple linear regression line
+})
+
+#To use ggplot2 functions like qplot (think quick plot), your data needs to be in
+#a data frame. Note: qplot() works a lot like plot(). 
+#Factors are important for indicating subsets of the data
+
+library(ggplot2)
+
+#Basic ggplot2
+qplot(displ,hwy,data=mpg)
+
+#Modifying aesthetics
+qplot(displ, hwy, data = mpg, color=drv)
+#note: color=drv sets the 3 types of drv variables to different colors
+
+#Adding a geom (a smoother for 95% confidence interval)
+qplot(displ,hwy,data=mpg,geom=c("point","smooth"))
+
+# Histogram
+qplot(hwy, data=mpg,fill=drv)
+#fill=drv sets the fill colors to the three variables instead drv
+
+#Facets (are like lattice plots). Scatterplot ex
+qplot(displ,hwy,data=mpg,facets=.~drv)
+
+#Facets: histogram example
+qplot(hwy, data=mpg,facets=drv~.,binwidth=2)
+
+#Density smooth
+qplot(hwy,data=mpg,geom="density")
+
+#Density smooth by variable group
+qplot(hwy,data=mpg,geom="density",color=drv)
+
+
+#Scatterplots: modifying shapes by variable
+qplot(displ, hwy, data=mpg,shape=drv)
+
+#Smooth the relationship for all three variables independently
+qplot(displ, hwy, data=mpg,color=drv)+geom_smooth(method="lm")
+
+#Smooth and split based on variable
+qplot(displ, hwy, data=mpg,facets=.~drv)+geom_smooth(method="lm")
+
+#Building plots in ggplot using layers
+g<-ggplot(mpg, aes(displ,hwy))
+g+geom_point()+geom_smooth(method="lm")
+#Option 2
+g+geom_point()+facet_grid(.~drv)+geom_smooth(method="lm")
+
+#Modifying Aesthetics
+g+geom_point(color="steelblue",size=4,alpha=1/2)
+
+#Modifying Aesthetics #2
+g+geom_point(aes(color=drv),size=4,alpha=1/2)
+#Note: aes() stands for aesthetics
+
+#Modifying labels
+g+geom_point(aes(color=drv))+labs(title="Driving Data")+labs(x=expression("Displ "*displ[2.5]),y="Highway Gas Mileage")
+
+#Cusomizing the Smooth
+g+geom_point(aes(color=drv),size=2,alpha=1/2)+
+        geom_smooth(size=4,linetype=3,method="lm",se=FALSE)
+
+#Changing the Theme
+g+geom_point(aes(color=drv))+theme_bw(base_family = "Times")
 
 
 
+#Notes about Axis limits:
+testdat<-data.frame(x=1:100,y=rnorm(100))
+testdat[50,2]<-100 #OUTLIER
+plot(testdat$x, testdat$y, type="l",ylim=c(-3,3))
+#Note: ylim prevents graph from showing all values
+g<-ggplot(testdat, aes(x=x,y=y))
+g+geom_line()+ylim(-3,3)
+#The above doesn't do the same thinig- it subsets the data from -3 to 3
+g+geom_line()+coord_cartesian(ylim=c(-3,3))
+#The above changes the y-axis properly
 
+#Boxplot in ggplot2
+qplot(drv,hwy,data=mpg,geom="boxplot")
 
+#Boxplot #2
+qplot(drv,hwy,data=mpg,geom="boxplot",color=manufacturer)
 
+#Cool grid plot
+g<-ggplot(data=mpg,aes(x=displ,y=hwy,color=factor(year)))
+g+geom_point()+facet_grid(drv~cyl,margins=TRUE)+
+        geom_smooth(method="lm",se=FALSE,size=2,color="black")+
+        labs(x="Displacement",y="Highway Mileage",title="Swirl Rules!")
 
+#Split up data
+cutpoints<-quantile(diamonds$carat,seq(0,1,length=4),na.rm=TRUE)
+diamonds$car2<-cut(diamonds$carat,cutpoints)
+g<-ggplot(data=diamonds,aes(depth,price))
+g+geom_point(alpha=1/3)+facet_grid(cut~car2)
 
+#Another boxplot
+ggplot(diamonds,aes(carat,price))+geom_boxplot()+facet_grid(.~cut)
 
 
 
