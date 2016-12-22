@@ -87,4 +87,6 @@ names(test20150101)<-c("Tickers","Weight","Date")
 names(test20160101)<-c("Tickers","Weight","Date")
 weights<-rbind(test20150101,test20160101)
 
-ggplot(weights,aes(x=weights$Date,y=weights$Weight))+geom_point()
+ggplot(weights,aes(x=weights$Date,y=weights$Weight))+geom_point()+
+        geom_segment(aes(x=weights$Date[1],y=weights$Weight[1],
+                         xend=weights$Date[2],yend=weights$Weight[2]))

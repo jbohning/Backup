@@ -90,7 +90,7 @@ points(coord,pch=20,cex=1.2,col="red")
 
 library(RgoogleMaps)
 
-terrmap<-GetMap(center = c(mean(DUI_lat),mean(DUI_lon)),zoom=8,
+terrmap<-GetMap(center = c(mean(DUI_lat),mean(DUI_lon)),zoom=10,
                 maptype="roadmap",
                 destfile = "C://Users//jxs056//Desktop//maptest.png")
 #Note: a larger zoom will zoom in more
