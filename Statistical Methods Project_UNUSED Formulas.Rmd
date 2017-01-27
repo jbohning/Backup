@@ -1,0 +1,239 @@
+---
+title: "Statistical Inference: Understanding a Normal Distribution and Examining a Tooth Growth Experiment for Statistically Signifcant Findings"
+author: "Jessica Bohning"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r warnings=FALSE}
+#Install all libraries
+library(ggplot2)
+library(datasets)
+```
+
+##Overview:
+In a few (2-3) sentences explain what is going to be reported on.
+
+##Simulations
+Include English explanations of the simulations you ran, with the accompanying R code. Your explanations should make clear what the R code accomplishes.
+
+##Sample Mean versus Theoretical Mean:
+Include figures with titles. In the figures, highlight the means you are comparing. Include text that explains the figures and what is shown on them, and provides appropriate numbers.
+
+##Sample Variance versus Theoretical Variance:
+Include figures (output from R) with titles. Highlight the variances you are comparing. Include text that explains your understanding of the differences of the variances.
+
+##Distribution:
+Via figures and text, explain how one can tell the distribution is approximately normal.
+
+##Part 1: Simulation Exercise
+The following will simiulate an expoential distribution with 1,000 simulations
+and a rate of 0.2 and then take a random sample (with replacement) of 40
+
+###How does the sample mean compare to the theoretical mean?
+```{r cache=TRUE}
+#Set up variables
+set.seed(248)
+lambda<- 0.2
+n<-40
+
+#run similuation 1000 times
+datasimulation<-NULL
+for (i in 1:1000){
+        datasimulation[i]<-mean(rexp(n,lambda))
+}
+
+#samplemeans<-NULL
+#Sample 40 means (with replacement)
+#samplemeans<-datasimulation[sample(1:1000,40,replace=TRUE)]
+
+#Histogram the sample means
+#Theoretical mean is 1/lamba
+
+hist(datasimulation,main="Histogram of Sample",xlab=NULL,ylab="Frequency")
+abline(v=mean(datasimulation),col="red")
+abline(v=1/lambda,col="blue")
+legend("topright",c("Simulation Mean","Theoretical Mean"),col=c("red","blue"),lwd=1)
+```
+
+As seen in the previous histogram, the sample distribution's mean lies close to
+the theoretical mean. 
+
+
+###How does the sample variance compare to the theoretical variance?
+```{r cache=TRUE}
+samplevariance<-var(datasimulation)
+theoreticalvariance<-(1/lambda)^2/n
+```
+
+The variance of the sample was `r round(samplevariance,3)` and the theoretical
+variance was `r round(theoreticalvariance,3)` and this shows that they have
+similar variances. 
+
+###Is the distribution approximately normal?
+If the sample mean...
+```{r cache=TRUE}
+set.seed(564)
+ggplot(data.frame(datasimulation),aes(datasimulation))+
+        geom_histogram(binwidth=.1,fill="gray",col=I("black"),
+                       aes(y=..density..))+
+        geom_density(col="blue")+
+        stat_function(fun=dnorm,args=list(mean=1/lambda,
+                                          sd=sqrt(theoreticalvariance)),
+                      col="red")+
+        xlab(NULL)+
+        ggtitle("Distribution of Simulated Data")
+```
+
+Note: that the blue line above shows the distribution of the simulated data and
+the red line shows the normal distribution
+
+From the histogram  above, it is clear that the simulated distribution is
+approximately normal
+
+
+##Part 2: Basic Inferential Data Analysis
+The following analysis uses the ToothGrowth data in R datasets package. In this
+data, "len" is the numeric tooth length, "supp" is the supplement type (Orange
+Juice or ascorbic acid), and "dose" is one of three doses of vitamin C (0.5, 1,
+and 2 mg/day).
+
+###Exploratory Analysis
+The following graph splits the tooth growth data into two groups: OJ drinkers 
+and ascorbic acid takers to see if there was a difference between the two.
+
+The red dots show the mean for each dosage group (by supplement) and the black
+lines show the mean for the supplement group as a whole
+
+```{r cache=TRUE}
+data(ToothGrowth)
+toothmeans<-data.frame(supp=c("OJ","VC"),
+                       lenmean=c(mean(ToothGrowth$len[ToothGrowth$supp=="OJ"]),
+                                 mean(ToothGrowth$len[ToothGrowth$supp=="VC"])))
+#Explore the data
+ggplot(ToothGrowth,aes(x=dose,y=len))+geom_point()+
+        facet_grid(.~supp)+
+        stat_summary(fun.y="mean",geom="point",col="red",size=3)+
+        geom_hline(data = toothmeans,aes(yintercept=lenmean))+
+        ggtitle("Tooth Growth by Dose Method and Size")
+
+```
+
+The graph above shows a few things:
+
+1. The group that received dosage in the form of OJ, had more tooth growth
+2. At a dosage level of 0.5 mg/day, OJ produced more tooth growth than VC (ascorbic acid)
+3. At a dosage level of 1.0 mg/day, OJ produced more tooth growth than VC
+4. At a dosage level of 2.0 mg/day, OJ and VC produced approximately the same tooth growth
+
+The next question is: are these differences statistically significant?
+
+##Confidence Interval Testing
+In the following sections, hypothesis testing will occur for the four scenarios
+listed above. 
+
+The null hypothesis for all four will be: the means for the two
+samples are the same.
+
+The alternative hypothesis is: the OJ sample is larger than the VC sample
+
+A 95% confidence level will be used
+
+###Hypothesis Test 1: Did the participants who took OJ have higher tooth growth than the participants that took VC?
+
+The null hypothesis is that the means for the two samples (OJ and VC) are the same.
+The alternative hypothesis is: the OJ sample is larger than the VC sample
+
+```{r}
+#Note: mean1 applies to the OJ group and mean2 applies to the VC group
+mean1<-mean(ToothGrowth$len[ToothGrowth$supp=="OJ"])
+mean2<-mean(ToothGrowth$len[ToothGrowth$supp=="VC"])
+n1<-length(ToothGrowth$len[ToothGrowth$supp=="OJ"])
+n2<-length(ToothGrowth$len[ToothGrowth$supp=="VC"])
+var1<-var(ToothGrowth$len[ToothGrowth$supp=="OJ"])
+var2<-var(ToothGrowth$len[ToothGrowth$supp=="VC"])
+
+sp<-((n-1)*var1+(n2-1)*var2)/(n1+n2-2)
+mean1-mean2+c(1,-1)*qt(.975,df=(n1+n2-2))*sqrt(sp)*sqrt(1/n1+1/n2)            
+
+t.test(ToothGrowth$len[ToothGrowth$supp == "OJ"], ToothGrowth$len[ToothGrowth$supp == 
+    "VC"],alternative = "greater")
+
+```
+
+Because the confidence interval includes zero, we accept the null hypothesis:
+we cannot conclude that OJ in general is more effective at producing tooth growth
+
+###Hypothesis Test 2: At a dose of 0.5 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+
+The null hypothesis is that the means for the two samples (0.5 mg/day of OJ and 0.5 mg/day of VC) are the same.
+The alternative hypothesis is: the 0.5 mg/day OJ sample is larger than the 0.5 mg/day VC sample
+
+```{r}
+#Note: mean1 applies to the OJ group and mean2 applies to the VC group
+mean1<-mean(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==0.5])
+mean2<-mean(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==0.5])
+n1<-length(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==0.5])
+n2<-length(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==0.5])
+var1<-var(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==0.5])
+var2<-var(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==0.5])
+
+sp<-((n-1)*var1+(n2-1)*var2)/(n1+n2-2)
+mean1-mean2+c(1,-1)*qt(.975,df=(n1+n2-2))*sqrt(sp)*sqrt(1/n1+1/n2)            
+
+```
+
+Because the confidence interval includes zero, we accept the null hypothesis:
+we cannot conclude that for a 0.5mg/day dose of OJ is more effective that 0.5mg/day of VC at producing tooth growth
+
+###Hypothesis Test 3: At a dose of 1 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+
+The null hypothesis is that the means for the two samples (1 mg/day of OJ and 1 mg/day of VC) are the same.
+The alternative hypothesis is: the 1 mg/day OJ sample is larger than the 1 mg/day VC sample
+
+```{r}
+#Note: mean1 applies to the OJ group and mean2 applies to the VC group
+mean1<-mean(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==1])
+mean2<-mean(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==1])
+n1<-length(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==1])
+n2<-length(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==1])
+var1<-var(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==1])
+var2<-var(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==1])
+
+sp<-((n-1)*var1+(n2-1)*var2)/(n1+n2-2)
+mean1-mean2+c(1,-1)*qt(.975,df=(n1+n2-2))*sqrt(sp)*sqrt(1/n1+1/n2)            
+
+```
+
+Because the confidence interval DO NOT include zero, we can conclude that in 95% of samples,
+a 1 mg/day dose of OJ will be more effective than a 1 mg/day of VC at producing tooth growth
+
+###Hypothesis Test 4: At a dose of 2 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+
+The null hypothesis is that the means for the two samples (2 mg/day of OJ and 2 mg/day of VC) are the same.
+The alternative hypothesis is: the 2 mg/day OJ sample is larger than the 2 mg/day VC sample
+
+```{r}
+#Note: mean1 applies to the OJ group and mean2 applies to the VC group
+mean1<-mean(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==2])
+mean2<-mean(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==2])
+n1<-length(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==2])
+n2<-length(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==2])
+var1<-var(ToothGrowth$len[ToothGrowth$supp=="OJ"&ToothGrowth$dose==2])
+var2<-var(ToothGrowth$len[ToothGrowth$supp=="VC"&ToothGrowth$dose==2])
+
+sp<-((n-1)*var1+(n2-1)*var2)/(n1+n2-2)
+mean1-mean2+c(1,-1)*qt(.975,df=(n1+n2-2))*sqrt(sp)*sqrt(1/n1+1/n2)            
+
+t.test(ToothGrowth$len[ToothGrowth$supp == "OJ"], ToothGrowth$len[ToothGrowth$supp == 
+    "VC"])
+
+```
+
+Because the confidence interval includes zero, we accept the null hypothesis:
+we cannot conclude that for a 0.5mg/day dose of OJ is more effective that 0.5mg/day of VC at producing tooth growth
+
+##Concluions
+We can conclude that in 95% of samples, a 1 mg/day dose of OJ will be more effective than a 1 mg/day of VC at producing tooth growth. None of the other combinations produced statistically significant differences
