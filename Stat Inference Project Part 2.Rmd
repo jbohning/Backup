@@ -1,0 +1,178 @@
+---
+title: "Examining Vitamin C Effects on Guinea Pig Tooth Growth"
+author: "Jessica Bohning"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+The following analysis uses the ToothGrowth data in R datasets package. In this
+data, "len" is the numeric tooth length, "supp" is the supplement type (Orange
+Juice or ascorbic acid), and "dose" is one of three doses of vitamin C (0.5, 1,
+and 2 mg/day). The goal is to find statistically significant doses (if any) that create toot growth
+
+###Exploratory Analysis
+The following graph splits the tooth growth data into two groups: OJ drinkers 
+and ascorbic acid takers to see if there was a difference between the two.
+
+The graph below shows a few things:
+
+1. The group that received dosages in the form of OJ, had more tooth growth
+2. At a dosage level of 0.5 mg/day, OJ produced more tooth growth than VC (ascorbic acid)
+3. At a dosage level of 1.0 mg/day, OJ produced more tooth growth than VC
+4. At a dosage level of 2.0 mg/day, OJ and VC produced approximately the same tooth growth
+5. As dosage level increases, the tooth growth also increases
+
+The next question is: are these differences statistically significant?
+
+NOTE: The black lines show the mean for the supplement group as a whole
+
+```{r cache=TRUE}
+library(datasets)
+library(ggplot2)
+data(ToothGrowth)
+toothmeans<-data.frame(supp=c("OJ","VC"),
+                       lenmean=c(mean(ToothGrowth$len[ToothGrowth$supp=="OJ"]),
+                                 mean(ToothGrowth$len[ToothGrowth$supp=="VC"])))
+#Explore the data
+ggplot(ToothGrowth,aes(x=factor(dose),y=len,fill=factor(dose)))+geom_boxplot()+
+        facet_grid(.~supp)+
+        geom_hline(data = toothmeans,aes(yintercept=lenmean))+
+        ggtitle("Tooth Growth by Dose Method and Size")
+
+```
+
+##Confidence Interval Testing
+In the following sections, hypothesis testing will occur for the five notes
+listed above, for a total of six hypothesis tests. A 95% confidence level will be used. After seeing fairly symetrical boxplots, it is assumed that the distribution is normal
+
+NOTE: code and output for the six hypothesis tests can be found in the Appendix at the end of this report
+
+###Hypothesis Test 1: Did the participants who took OJ have higher tooth growth than the participants that took VC?
+The null hypothesis is that the means for the two samples (OJ and VC) are the same.
+
+The alternative hypothesis is: the OJ sample is larger than the VC sample
+
+Because the p-value is less than 0.05, we can conclude that in 95% of samples,
+any dose of OJ will be more effective than any dose of VC at producing tooth growth
+
+###Hypothesis Test 2: At a dose of 0.5 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+The null hypothesis is that the means for the two samples (0.5 mg/day of OJ and 0.5 mg/day of VC) are the same.
+
+The alternative hypothesis is: the 0.5 mg/day OJ sample is larger than the 0.5 mg/day VC sample
+
+Because the p-value is less than 0.05, we can conclude that in 95% of samples,
+a 0.5mg/day dose of OJ will be more effective than a 0.5mg/day dose of VC at producing tooth growth
+
+###Hypothesis Test 3: At a dose of 1 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+The null hypothesis is that the means for the two samples (1 mg/day of OJ and 1 mg/day of VC) are the same.
+
+The alternative hypothesis is: the 1 mg/day OJ sample is larger than the 1 mg/day VC sample
+
+Because the p-value is less than 0.05, we can conclude that in 95% of samples,
+a 1mg/day dose of OJ will be more effective than a 1mg/day dose of VC at producing tooth growth
+
+###Hypothesis Test 4: At a dose of 2 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+The null hypothesis is that the means for the two samples (2 mg/day of OJ and 2 mg/day of VC) are the same.
+
+The alternative hypothesis is: the 2 mg/day OJ sample is larger than the 2 mg/day VC sample
+
+Because the p-value is greater than 0.05, we can conclude that in 95% of samples,
+a 2mg/day dose of OJ will be more effective than a 2mg/day dose of VC at producing tooth growth
+
+###Hypothesis Test 5: Is a 1mg/day dose more effective than a 0.5 mg/day dose?
+The null hypothesis is that the means for the two samples (1 mg/day and 0.5 mg/day) are the same.
+
+The alternative hypothesis is: any 1 mg/day sample is larger than any 0.5 mg/day sample
+
+Because the p-value is less than 0.05, we can conclude that in 95% of samples,
+any 1mg/day dose will be more effective than any 0.5 mg/day dose at producing tooth growth
+
+###Hypothesis Test 5: Is a 2mg/day dose more effective than a 1 mg/day dose?
+The null hypothesis is that the means for the two samples (2 mg/day and 1 mg/day) are the same.
+
+The alternative hypothesis is: any 2 mg/day sample is larger than any 1 mg/day sample
+
+Because the p-value is less than 0.05, we can conclude that in 95% of samples,
+any 2mg/day dose will be more effective than any 1 mg/day dose at producing tooth growth
+
+##Conclusions
+We can conclude that in 95% of samples, the following will be true:
+
+* Any dose size of OJ will be more effective than any dose size of VC
+* 0.5mg/day dose of OJ will be more effective than a 0.5mg/day dose of VC at producing tooth growth
+* 1 mg/day dose of OJ will be more effective than a 1 mg/day of VC at producing tooth growth.
+* Any 1mg/day dose will be more effective than any 0.5 mg/day dose of VC at producing tooth growth
+* Any 2mg/day dose will be more effective than any 1 mg/day dose at producing tooth growth
+
+The only alternative hypothesis that we failed to reject was:
+
+* A 2mg/day dose of OJ will be more effective than a 2mg/day dose of VC at producing tooth growth
+
+For the most part, the deliver method and dosage affects tooth growth in guinea pigs. To get the most tooth growth take any 2 mg/day dose of Vitamin C (of either OJ or asorbic acid) 
+
+##Appendix
+###Hypothesis Test 1: Did the participants who took OJ have higher tooth growth than the participants that took VC?
+
+```{r}
+#95% One-Sided T Test 
+t.test(ToothGrowth$len[ToothGrowth$supp == "OJ"], ToothGrowth$len[ToothGrowth$supp == 
+    "VC"],alternative = "greater")
+
+```
+
+###Hypothesis Test 2: At a dose of 0.5 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+
+```{r}
+#95% One-Sided T Test 
+t.test(ToothGrowth$len[ToothGrowth$supp == "OJ"&ToothGrowth$dose==0.5],
+       ToothGrowth$len[ToothGrowth$supp == "VC"&ToothGrowth$dose==0.5],
+       alternative = "greater")
+
+```
+
+###Hypothesis Test 3: At a dose of 1 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+
+```{r}
+#95% One-Sided T Test 
+t.test(ToothGrowth$len[ToothGrowth$supp == "OJ"&ToothGrowth$dose==1],
+       ToothGrowth$len[ToothGrowth$supp == "VC"&ToothGrowth$dose==1],
+       alternative = "greater")
+
+```
+
+###Hypothesis Test 4: At a dose of 2 mg/day did the participants who took OJ have higher tooth growth than the participants that took VC?
+
+```{r}
+#95% One-Sided T Test 
+t.test(ToothGrowth$len[ToothGrowth$supp == "OJ"&ToothGrowth$dose==2],
+       ToothGrowth$len[ToothGrowth$supp == "VC"&ToothGrowth$dose==2],
+       alternative = "greater")
+
+```
+
+###Hypothesis Test 5: Is a 1mg/day dose more effective than a 0.5 mg/day dose?
+
+```{r}
+#95% One-Sided T Test 
+t.test(ToothGrowth$len[ToothGrowth$dose==1],
+       ToothGrowth$len[ToothGrowth$dose==0.5],
+       alternative = "greater")
+
+```
+
+###Hypothesis Test 5: Is a 2mg/day dose more effective than a 1 mg/day dose?
+
+```{r}
+#95% One-Sided T Test 
+t.test(ToothGrowth$len[ToothGrowth$dose==2],
+       ToothGrowth$len[ToothGrowth$dose==1],
+       alternative = "greater")
+
+```
+
+
+
