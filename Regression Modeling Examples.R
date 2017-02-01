@@ -68,19 +68,66 @@ lm(I(child - mean(child))~ I(parent - mean(parent)) - 1, data = galton)
 #output: slope is 0.6463
 
 
-#Linear Least Squares Coding Example
-x<-galton$parent        
-y<-galton$child
-beta1 <- cor(y, x) *  sd(x) / sd(y)
-beta0 <- mean(x) - beta1 * mean(y)
-rbind(c(beta0, beta1), coef(lm(x ~ y)))
+#Linear Least Squares Coding Example (gives x-intercept and slope)
+y <- galton$child
+x <- galton$parent
+beta1 <- cor(y, x) *  sd(y) / sd(x)
+beta0 <- mean(y) - beta1 * mean(x)
+rbind(c(beta0, beta1), coef(lm(y ~ x)))
+
+#Also, a quick way to do a linear regression line of best fit
+coef(lm(y~x))
+
+
+#Adding the line of best fit to the graph
+freqData <- as.data.frame(table(galton$child, galton$parent))
+names(freqData) <- c("child", "parent", "freq")
+plot(as.numeric(as.vector(freqData$parent)), 
+     as.numeric(as.vector(freqData$child)),
+     pch = 21, col = "black", bg = "lightblue",
+     cex = .05 * freqData$freq, 
+     xlab = "parent", ylab = "child", xlim = c(62, 74), ylim = c(62, 74))
+abline(mean(y) - mean(x) * cor(y, x) * sd(y) / sd(x), sd(y) / sd(x) * cor(y, x), lwd = 3, col = "red")
+abline(mean(y) - mean(x) * sd(y) / sd(x) / cor(y, x), sd(y) / sd(x) / cor(y, x), lwd = 3, col = "blue")
+abline(mean(y) - mean(x) * sd(y) / sd(x), sd(y) / sd(x), lwd = 2)
+points(mean(x), mean(y), cex = 2, pch = 19)
 
 
 
 
+#Regression to the mean examples
 
+#Normalizing the dta and setting plotting parameters
+library(UsingR)
+data(father.son)
+y <- (father.son$sheight - mean(father.son$sheight)) / sd(father.son$sheight)
+x <- (father.son$fheight - mean(father.son$fheight)) / sd(father.son$fheight)
+rho <- cor(x, y)
+myPlot <- function(x, y) {
+        plot(x, y, 
+             xlab = "Father's height, normalized",
+             ylab = "Son's height, normalized",
+             xlim = c(-3, 3), ylim = c(-3, 3),
+             bg = "lightblue", col = "black", cex = 1.1, pch = 21, 
+             frame = FALSE)
+}
+#Plot the data, code
+myPlot(x, y)
+abline(0, 1) # if there were perfect correlation
+abline(0, rho, lwd = 2) # father predicts son
+abline(0, 1 / rho, lwd = 2) # son predicts father, son on vertical axis
+abline(h = 0); abline(v = 0) # reference lines for no relathionship
 
-
+#Plot option2:
+ggplot(data.frame(x=x,y=y),aes(x=x,y=y))+
+        geom_point(size=6,colour="black",alpha=0.2)+
+        geom_point(size=4,colour="salmon",alpha=0.2)+
+        xlim(-4,4)+ylim(-4,4)+
+        geom_abline(intercept=0,slope=1)+
+        geom_vline(xintercept=0)+
+        geom_hline(yintercept=0)+
+        geom_abline(intercept=0,slope=rho,size=2)+
+        geom_abline(intercept=0,slope=1/rho,size=2)
 
 
 
