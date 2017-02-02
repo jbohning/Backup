@@ -1,0 +1,139 @@
+---
+title: 'Course 7: Regression Models. Quiz 2'
+author: "Jessica Bohning"
+date: "February 2, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+Consider the following data with x as the predictor and y as as the outcome.
+x <- c(0.61, 0.93, 0.83, 0.35, 0.54, 0.16, 0.91, 0.62, 0.62)
+y <- c(0.67, 0.84, 0.6, 0.18, 0.85, 0.47, 1.1, 0.65, 0.36)
+Give a P-value for the two sided hypothesis test of whether ß1 from a linear regression model is 0 or not.
+```{r}
+x <- c(0.61, 0.93, 0.83, 0.35, 0.54, 0.16, 0.91, 0.62, 0.62)
+y <- c(0.67, 0.84, 0.6, 0.18, 0.85, 0.47, 1.1, 0.65, 0.36)
+
+fit<-lm(y~x)
+summary(fit)
+```
+Answer: 0.05296
+
+
+## Question 2
+Consider the previous problem, give the estimate of the residual standard deviation.
+```{r}
+summary(fit)
+```
+Answer: 0.223
+
+
+##Question 3
+In the mtcars data set, fit a linear regression model of weight (predictor) on
+mpg (outcome). Get a 95% confidence interval for the expected mpg at the average
+weight. What is the lower endpoint?
+```{r}
+data(mtcars)
+x<-mtcars$wt
+y<-mtcars$mpg
+fit<-lm(y~x)
+#Option 1
+predict(fit,newdata=data.frame(x=mean(x)),interval=("confidence"))
+#OPtion 2
+yhat <- fit$coef[1] + fit$coef[2]*mean(x)
+yhat+c(-1, 1)*qt(.975,df=fit$df)*summary(fit)$sigma/sqrt(length(y))
+```
+Answer: 18.991 to 21.190
+
+
+## Question 4
+Refer to the previous question. Read the help file for mtcars. What is the
+weight coefficient interpreted as?
+
+Answer: increasing in mpg per 1000 lbs
+
+##Question 5
+Consider again the mtcars data set and a linear regression model with mpg as
+predicted by weight (1,000 lbs). A new car is coming weighing 3000 pounds. 
+Construct a 95% prediction interval for its mpg. What is the upper endpoint?
+```{r}
+yhat<-fit$coef[1]+fit$coef[2]*3
+yhat+c(-1, 1)*qt(.975,df=fit$df)*summary(fit)$sigma*sqrt(1+(1/length(y))+((3-mean(x))^2/sum((x-mean(x))^2)))
+```
+Answer: 14.9299 to 27.5734
+
+
+##Question 6
+Consider again the mtcars data set and a linear regression model with mpg as 
+predicted by weight (in 1,000 lbs). A “short” ton is defined as 2,000 lbs. 
+Construct a 95% confidence interval for the expected change in mpg per 1 short
+ton increase in weight. Give the lower endpoint.
+```{r}
+fit2<-lm(y~I(x/2))
+coef2<-coef(summary(fit2))
+coef2[2,1]+c(-1,1)*qt(.975,df=fit$df)*coef2[2,2]
+```
+Answer: -12.973 to -8.405
+
+
+##Question 7
+If my X from a linear regression is measured in centimeters and I convert it to meters what would happen to the slope coefficient?
+```{r}
+x_cm<-c(5,3,8,4,1)
+y<-x_cm*3
+x_m<-x_cm/100
+lm(y~x_cm)
+lm(y~x_m)
+```
+Answer: x100
+
+
+##Question 8
+I have an outcome, Y, and a predictor, X and fit a linear regression model 
+Y=ß0+ß1X+?? to obtain ß^0 and ß^1. What would be the consequence to the subsequent
+slope and intercept if I were to refit the model with a new regressor, X+c for
+some constant, c?
+```{r}
+x1<-c(3,7,34,3,7,45,267,9,5,2,7,56,4)
+y<-c(1,2,78,4,345,756,32,3,8,4,9,423,89)
+x2<-x1+6
+lm(y~x1)
+lm(y~x2)
+```
+Slope stayed constant while intercept shrank
+Answer: 128.6887-6*.1805=127.6057
+
+
+##Question 9
+Refer back to the mtcars data set with mpg as an outcome and weight (wt) as the
+predictor. About what is the ratio of the the sum of the squared errors, 
+???ni=1(Yi-Y^i)2 when comparing a model with just an intercept (denominator) to
+the model with the intercept and slope (numerator)?
+```{r}
+x<-mtcars$wt
+y<-mtcars$mpg
+fit1<-lm(y~x)
+sum1<-summary(fit1)
+fit2<-lm(y~x-1)
+sum2<-summary(fit2)
+sum2$sigma/sum1$sigma
+```
+Answer: About 4
+
+
+##Question 10
+Do the residuals always have to sum to 0 in linear regression?
+Answer: They do provided an intercept is included. If not they most likely won't.
+
+
+fit<-lm(mpg~wt,mtcars)
+sumCoef<-summary(fit)$coefficients
+sumCoef[1,1]+c(-1,1)*qt(.975,df=fit$df)*sumCoef[1,2] #CI on intercept
+sumCoef[2,1]+c(-1,1)*qt(.975,df=fit$df)*sumCoef[2,2] #CI on slope
+sumCoef<-summary(fit)$coefficients
+sumCoef[1,1]+c(-1,1)*qt(.975,df=fit$df)*sumCoef[1,2] #CI on intercept
+sumCoef[2,1]+c(-1,1)*qt(.975,df=fit$df)*sumCoef[2,2] #CI on slope
