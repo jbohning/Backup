@@ -52,3 +52,39 @@ fit <- glm(count ~ relevel(spray, "B"), data = InsectSprays, family = poisson)
 exp(coef(fit))[2]
 ```
 Answer:0.9456
+
+##Question 5
+Consider a Poisson glm with an offset, t. So, for example, a model of the form glm(count ~ x + offset(t), family = poisson) where x is a factor variable comparing a treatment (1) to a control (0) and t is the natural log of a monitoring time. What is impact of the coefficient for x if we fit the model glm(count ~ x + offset(t2), family = poisson) where 2 <- log(10) + t? In other words, what happens to the coefficients if we change the units of the offset variable. (Note, adding log(10) on the log scale is multiplying by 10 on the original scale.)
+```{r}
+x<-abs(rnorm(1:250))
+count<-round(abs((rnorm(250)*50)),0)
+t<-log(x)
+t2<-log(10)+t
+q5Amdl<-glm(count~x+offset(t),family=poisson)
+q5Bmdl<-glm(count~x+offset(t2),family=poisson)
+q5Amdl$coefficients
+q5Bmdl$coefficients
+```
+Answer: only the intercept changed...
+
+
+##Question 6
+Consider the data
+x <- -5:5
+y <- c(5.12, 3.93, 2.67, 1.87, 0.52, 0.08, 0.93, 2.05, 2.54, 3.87, 4.97)
+Using a knot point at 0, fit a linear model that looks like a hockey stick with two lines meeting at x=0. Include an intercept term, x and the knot point term. What is the estimated slope of the line after 0?
+```{r}
+x <- -5:5
+y <- c(5.12, 3.93, 2.67, 1.87, 0.52, 0.08, 0.93, 2.05, 2.54, 3.87, 4.97)
+plot(x,y)
+knots <- 0
+splineTerms<-sapply(knots,function(knot) (x > knot) * (x - knot))
+xmat<-cbind(1,x,splineTerms)
+q6mdl<-lm(y~xmat-1)
+yhat<-predict(q6mdl)
+lines(x, yhat, col = "red", lwd = 2)
+summary(q6mdl)
+sum(coef(mdl6)[2:3])
+```
+Slope: 1.0130
+
