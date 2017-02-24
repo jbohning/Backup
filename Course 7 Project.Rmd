@@ -1,0 +1,50 @@
+---
+title: "Relationship Between MPG and Transmission"
+author: "Jessica Bohning"
+date: "February 24, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive Summary
+askdjjfalskjdfal;ksjdf
+
+### Exploratory Analysis
+
+Before starting the data analysis, let's get a bried glimpse of the data using a boxplot. 
+
+```{r}
+library(UsingR)
+library(ggplot2)
+data(mtcars) #an "am" of 0 = automatic and an "am" of 1 = manual
+ggplot(mtcars,aes(as.character(mtcars$am),mtcars$mpg))+
+        geom_boxplot(lwd=0.25,fatten=0.25,outlier.size =0.25)+
+        labs(x="Automatic (0) or Manual (1) Transmission")+
+        labs(y="Miles per Gallon (mpg)")
+```
+
+This graph shows that the automatic tranmission (value of 0) gets lower gas mileage than a manual transmission (1).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+##Intstructions
+Your report must be:
+
+1) Written as a PDF printout of a compiled (using knitr) R markdown document.
+2) Brief. Roughly the equivalent of 2 pages or less for the main text. Supporting figures in an appendix can be included up to 5 total pages including the 2 for the main report. The appendix can only include figures.
+3) Include a first paragraph executive summary.
+4) Upload your PDF by clicking the Upload button below the text box.
