@@ -117,6 +117,14 @@ names(folds)
 folds$train[[1]]
 folds$test[[1]]
 
+#SPAM Example
+library(caret); library(kernlab); data(spam)
+inTrain <- createDataPartition(y=spam$type,
+                               p=0.75, list=FALSE)
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+modelFit <- train(type ~.,data=training, method="glm")
+
 #SPAM Example: training options
 args(train.default)
 function (x, y, method = "rf", preProcess = NULL, ..., weights = NULL, 
@@ -252,7 +260,168 @@ quantile((capAve - capAveTruth)[!selectNA])
 library(kernlab);data(spam)
 spam$capitalAveSq <- spam$capitalAve^2
 
+library(ISLR); library(caret); data(Wage);
+inTrain <- createDataPartition(y=Wage$wage,
+                               p=0.7, list=FALSE)
+training <- Wage[inTrain,]; testing <- Wage[-inTrain,]
+#Covariates to add dummy variables
+table(training$jobclass)
+dummies <- dummyVars(wage ~ jobclass,data=training)
+head(predict(dummies,newdata=training))
+#Removing zero covariates (things that have very little variability and won't be good predictors)
+nsv <- nearZeroVar(training,saveMetrics=TRUE)
+nsv
+#Sex is a near zero variable (there are only males in this dataset) so it wouldn't be good to use sex as a predictor variable
+
+#Splines for polynomial functions
+library(splines)
+bsBasis <- bs(training$age,df=3) 
+bsBasis
+
+lm1 <- lm(wage ~ bsBasis,data=training)
+plot(training$age,training$wage,pch=19,cex=0.5)
+points(training$age,predict(lm1,newdata=training),col="red",pch=19,cex=0.5)
+
+#Splines on the test set
+predict(bsBasis,age=testing$age)
 
 
+
+#Preprocessings with Principal Component Analysis (PCA)
+library(caret); library(kernlab); data(spam)
+inTrain <- createDataPartition(y=spam$type,
+                               p=0.75, list=FALSE)
+training <- spam[inTrain,]
+testing <- spam[-inTrain,]
+
+M <- abs(cor(training[,-58]))
+diag(M) <- 0 #Everything is correlated to itself so set this sets the diagnols to zero
+which(M > 0.8,arr.ind=T)
+
+names(spam)[c(34,32)]
+plot(spam[,34],spam[,32])
+#We could rotate the plot
+X <- 0.71*training$num415 + 0.71*training$num857
+Y <- 0.71*training$num415 - 0.71*training$num857
+plot(X,Y)
+#Principal components in R - prcomp
+smallSpam <- spam[,c(34,32)]
+prComp <- prcomp(smallSpam)
+plot(prComp$x[,1],prComp$x[,2])
+prComp$rotation
+
+#PCA on SPAM data
+typeColor <- ((spam$type=="spam")*1 + 1)
+prComp <- prcomp(log10(spam[,-58]+1))
+plot(prComp$x[,1],prComp$x[,2],col=typeColor,xlab="PC1",ylab="PC2")
+
+#PCA with caret
+preProc <- preProcess(log10(spam[,-58]+1),method="pca",pcaComp=2)
+spamPC <- predict(preProc,log10(spam[,-58]+1))
+plot(spamPC[,1],spamPC[,2],col=typeColor)
+
+#Preprocessing with PCA
+preProc <- preProcess(log10(training[,-58]+1),method="pca",pcaComp=2)
+trainPC <- predict(preProc,log10(training[,-58]+1))
+modelFit <- train(training$type ~ .,method="glm",data=trainPC)
+#Alternative
+testPC <- predict(preProc,log10(testing[,-58]+1))
+confusionMatrix(testing$type,predict(modelFit,testPC))
+
+
+#Predicting with Regressions
+#Old Faithful data
+library(caret);data(faithful); set.seed(333)
+inTrain <- createDataPartition(y=faithful$waiting,
+                               p=0.5, list=FALSE)
+trainFaith <- faithful[inTrain,]; testFaith <- faithful[-inTrain,]
+head(trainFaith)
+
+#Eruption duration versus waiting time
+plot(trainFaith$waiting,trainFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+
+#Fit a linear model
+lm1 <- lm(eruptions ~ waiting,data=trainFaith)
+summary(lm1)
+
+#Model fit
+plot(trainFaith$waiting,trainFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+lines(trainFaith$waiting,lm1$fitted,lwd=3)
+#Predict a new value
+coef(lm1)[1] + coef(lm1)[2]*80
+newdata <- data.frame(waiting=80)
+predict(lm1,newdata)
+
+#Plot predictions - training and test
+par(mfrow=c(1,2))
+plot(trainFaith$waiting,trainFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+lines(trainFaith$waiting,predict(lm1),lwd=3)
+plot(testFaith$waiting,testFaith$eruptions,pch=19,col="blue",xlab="Waiting",ylab="Duration")
+lines(testFaith$waiting,predict(lm1,newdata=testFaith),lwd=3)
+
+#Get training set/test set errors
+# Calculate RMSE on training
+sqrt(sum((lm1$fitted-trainFaith$eruptions)^2))
+# Calculate RMSE on test
+sqrt(sum((predict(lm1,newdata=testFaith)-testFaith$eruptions)^2))
+
+#Prediction intervals
+pred1 <- predict(lm1,newdata=testFaith,interval="prediction")
+ord <- order(testFaith$waiting)
+plot(testFaith$waiting,testFaith$eruptions,pch=19,col="blue")
+matlines(testFaith$waiting[ord],pred1[ord,],type="l",,col=c(1,2,2),lty = c(1,1,1), lwd=3)
+
+#Same process with caret
+modFit <- train(eruptions ~ waiting,data=trainFaith,method="lm")
+summary(modFit$finalModel)
+
+
+#Predicting with Regression Multiple Covariates
+library(ISLR); library(ggplot2); library(caret);
+data(Wage); Wage <- subset(Wage,select=-c(logwage))
+summary(Wage)
+
+#Get training/test sets
+inTrain <- createDataPartition(y=Wage$wage,
+                               p=0.7, list=FALSE)
+training <- Wage[inTrain,]; testing <- Wage[-inTrain,]
+dim(training); dim(testing)
+
+#Get Feature Plot
+featurePlot(x=training[,c("age","education","jobclass")],
+            y = training$wage,plot="pairs")
+
+#Plot age versus wage
+qplot(age,wage,data=training)
+
+#Plot age versus wage colour by jobclass
+qplot(age,wage,colour=jobclass,data=training)
+
+#Plot age versus wage colour by education
+qplot(age,wage,colour=education,data=training)
+
+#Fit a linear model
+modFit<- train(wage ~ age + jobclass + education,
+               method = "lm",data=training)
+finMod <- modFit$finalModel
+print(modFit)
+
+#Diagnostics
+plot(finMod,1,pch=19,cex=0.5,col="#00000010")
+
+#Color by variables not used in the model
+qplot(finMod$fitted,finMod$residuals,colour=race,data=training)
+
+#Plot by index
+plot(finMod$residuals,pch=19)
+
+#Predicted versus truth in test set
+pred <- predict(modFit, testing)
+qplot(wage,pred,colour=year,data=testing)
+
+#If you want to use all covariates
+modFitAll<- train(wage ~ .,data=training,method="lm")
+pred <- predict(modFitAll, testing)
+qplot(wage,pred,data=testing)
 
 
